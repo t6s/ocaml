@@ -190,6 +190,9 @@ let create_scope () =
   init_def level;
   level
 
+let snapshot () = Types.snapshot ~level:(get_current_level ())
+let backtrack snapshot = backtrack ~level:(get_current_level ()) snapshot
+
 let wrap_end_def f = Misc.try_finally f ~always:end_def
 let wrap_end_def_new_pool f =
   wrap_end_def (fun _ -> with_new_pool ~level:!current_level f)
@@ -1669,13 +1672,13 @@ let expand_head_once env ty =
 
 (* Check whether a type can be expanded *)
 let safe_abbrev env ty =
-  let snap = Btype.snapshot () in
+  let snap = snapshot () in
   try ignore (expand_abbrev env ty); true with
     Cannot_expand ->
-      Btype.backtrack snap;
+      backtrack snap;
       false
   | Escape _ ->
-      Btype.backtrack snap;
+      backtrack snap;
       cleanup_abbrev ();
       false
 
@@ -1689,10 +1692,10 @@ let try_expand_once env ty =
 
 (* This one only raises Cannot_expand *)
 let try_expand_safe env ty =
-  let snap = Btype.snapshot () in
+  let snap = snapshot () in
   try try_expand_once env ty
   with Escape _ ->
-    Btype.backtrack snap; cleanup_abbrev (); raise Cannot_expand
+    backtrack snap; cleanup_abbrev (); raise Cannot_expand
 
 (* Fully expand the head of a type. *)
 let rec try_expand_head
@@ -1761,10 +1764,10 @@ let expand_abbrev_opt env ty =
   expand_abbrev_gen Private Env.find_type_expansion_opt env ty
 
 let safe_abbrev_opt env ty =
-  let snap = Btype.snapshot () in
+  let snap = snapshot () in
   try ignore (expand_abbrev_opt env ty); true
   with Cannot_expand | Escape _ ->
-    Btype.backtrack snap;
+    backtrack snap;
     false
 
 let try_expand_once_opt env ty =
@@ -1773,10 +1776,10 @@ let try_expand_once_opt env ty =
   | _ -> raise Cannot_expand
 
 let try_expand_safe_opt env ty =
-  let snap = Btype.snapshot () in
+  let snap = snapshot () in
   try try_expand_once_opt env ty
   with Escape _ ->
-    Btype.backtrack snap; raise Cannot_expand
+    backtrack snap; raise Cannot_expand
 
 let expand_head_opt env ty =
   try try_expand_head try_expand_safe_opt env ty with Cannot_expand -> ty
@@ -3266,7 +3269,7 @@ and unify_row_field uenv fixed1 fixed2 rm1 rm2 l f1 f2 =
       raise_unexplained_for Unify
 
 let unify uenv ty1 ty2 =
-  let snap = Btype.snapshot () in
+  let snap = snapshot () in
   try
     unify uenv ty1 ty2
   with
@@ -4316,7 +4319,7 @@ and eqtype_row rename type_pairs subst env row1 row2 =
 (* Must empty univar_pairs first *)
 let eqtype_list rename type_pairs subst env tl1 tl2 =
   with_univar_pairs [] (fun () ->
-    let snap = Btype.snapshot () in
+    let snap = snapshot () in
     Misc.try_finally
       ~always:(fun () -> backtrack snap)
       (fun () -> eqtype_list rename type_pairs subst env tl1 tl2))
@@ -4974,12 +4977,12 @@ let rec subtype_rec env trace t1 t2 cstrs =
           if eq_package_path env p1 p2 then cstrs' @ cstrs
           else begin
             (* need to check module subtyping *)
-            let snap = Btype.snapshot () in
+            let snap = snapshot () in
             match List.iter (fun (_, t1, t2, _) -> unify env t1 t2) cstrs' with
             | () when Result.is_ok (!package_subtype env p1 fl1 p2 fl2) ->
-              Btype.backtrack snap; cstrs' @ cstrs
+              backtrack snap; cstrs' @ cstrs
             | () | exception Unify _ ->
-              Btype.backtrack snap; raise Not_found
+              backtrack snap; raise Not_found
           end
         with Not_found ->
           (trace, t1, t2, !univar_pairs)::cstrs

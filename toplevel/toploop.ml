@@ -354,7 +354,7 @@ let rec get_phrases ppf lb phrs =
 
 (* Type, compile and execute a phrase. *)
 let process_phrase ppf snap phr =
-  snap := Btype.snapshot ();
+  snap := Ctype.snapshot ();
   Warnings.reset_fatal ();
   let phr = preprocess_phrase ppf phr in
   Env.reset_cache_toplevel ();
@@ -398,7 +398,7 @@ let loop ppf =
   run_hooks After_setup;
   load_ocamlinit ppf;
   while true do
-    let snap = ref (Btype.snapshot ()) in
+    let snap = ref (Ctype.snapshot ()) in
     try
       Lexing.flush_input lb;
       (* Reset the phrase buffer when we flush the lexing buffer. *)
@@ -409,9 +409,9 @@ let loop ppf =
       process_phrases ppf snap phrs
     with
     | End_of_file -> raise (Compenv.Exit_with_status 0)
-    | Sys.Break -> fprintf ppf "Interrupted.@."; Btype.backtrack !snap
+    | Sys.Break -> fprintf ppf "Interrupted.@."; Ctype.backtrack !snap
     | PPerror -> ()
-    | x -> Location.report_exception ppf x; Btype.backtrack !snap
+    | x -> Location.report_exception ppf x; Ctype.backtrack !snap
   done
 
 let preload_objects = ref []

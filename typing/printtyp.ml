@@ -2193,12 +2193,12 @@ let is_unit env ty =
   | _ -> false
 
 let unifiable env ty1 ty2 =
-  let snap = Btype.snapshot () in
+  let snap = Ctype.snapshot () in
   let res =
     try Ctype.unify env ty1 ty2; true
     with Unify _ -> false
   in
-  Btype.backtrack snap;
+  Ctype.backtrack snap;
   res
 
 let explanation_diff env t3 t4 =

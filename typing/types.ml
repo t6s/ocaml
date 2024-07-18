@@ -808,7 +808,7 @@ let undo_change = function
   | Ccommu (Cvar r)  -> r.commu <- Cunknown
   | Cuniv  (r, v)    -> r := v
 
-type snapshot = changes ref * int
+type snapshot = changes ref * int * int
 let last_snapshot = Local_store.s_ref 0
 
 let log_type ty =
@@ -907,10 +907,10 @@ let rec link_commu ~(inside : commutable) (c : commutable) =
 
 let set_commu_ok c = link_commu ~inside:c Cok
 
-let snapshot () =
+let snapshot ~level =
   let old = !last_snapshot in
   last_snapshot := !new_id;
-  (!trail, old)
+  (!trail, old, level)
 
 let rec rev_log accu = function
     Unchanged -> accu
@@ -920,7 +920,8 @@ let rec rev_log accu = function
       next := Invalid;
       rev_log (ch::accu) d
 
-let backtrack ~cleanup_abbrev (changes, old) =
+let backtrack ~cleanup_abbrev ~level (changes, old, saved_level) =
+  assert (level = saved_level);
   match !changes with
     Unchanged -> last_snapshot := old
   | Invalid -> failwith "Types.backtrack"
@@ -932,7 +933,7 @@ let backtrack ~cleanup_abbrev (changes, old) =
       last_snapshot := old;
       trail := changes
 
-let undo_first_change_after (changes, _) =
+let undo_first_change_after (changes, _, _level) =
   match !changes with
   | Change (ch, _) ->
       undo_change ch
@@ -947,7 +948,7 @@ let rec rev_compress_log log r =
   | Change (_, next) ->
       rev_compress_log log next
 
-let undo_compress (changes, _old) =
+let undo_compress (changes, _old, _level) =
   match !changes with
     Unchanged
   | Invalid -> ()

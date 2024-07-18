@@ -859,11 +859,11 @@ let check_well_founded ~abs_env env loc path to_check visited ty0 =
   and check_subtype parents trace outer_ty inner_ty =
       check parents (Contains (outer_ty, inner_ty) :: trace) inner_ty
   in
-  let snap = Btype.snapshot () in
+  let snap = Ctype.snapshot () in
   try Ctype.wrap_trace_gadt_instances env (check TypeSet.empty []) ty0
   with Ctype.Escape _ ->
     (* Will be detected by check_regularity *)
-    Btype.backtrack snap
+    Ctype.backtrack snap
 
 let check_well_founded_manifest ~abs_env env loc path decl =
   if decl.type_manifest = None then () else

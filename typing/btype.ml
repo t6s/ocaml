@@ -627,7 +627,6 @@ let check_memorized_abbrevs () =
 
 (* Re-export backtrack *)
 
-let snapshot = snapshot
 let backtrack = backtrack ~cleanup_abbrev
 
                   (**********************************)

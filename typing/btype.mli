@@ -231,8 +231,7 @@ val forget_abbrev:
 
 (**** Backtracking ****)
 
-val snapshot: unit -> snapshot
-val backtrack: snapshot -> unit
+val backtrack: level:int -> snapshot -> unit
         (* Backtrack to a given snapshot. Only possible if you have
            not already backtracked to a previous snapshot.
            Calls [cleanup_abbrev] internally *)

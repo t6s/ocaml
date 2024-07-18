@@ -33,6 +33,9 @@ exception Matches_failure of Env.t * Errortrace.unification_error
 exception Incompatible
   (* Raised from [mcomp] *)
 
+val snapshot: unit -> snapshot
+val backtrack: snapshot -> unit
+
 (* All the following wrapper functions revert to the original level,
    even in case of exception. *)
 val with_local_level_generalize:

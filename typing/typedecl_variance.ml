@@ -194,13 +194,13 @@ let compute_variance_type env ~check (required, loc) decl tyl =
       let visited' = TypeSet.add ty !visited in
       visited := visited';
       let v1 = get_variance ty tvl in
-      let snap = Btype.snapshot () in
+      let snap = Ctype.snapshot () in
       let v2 =
         TypeMap.fold
           (fun t vt v ->
              if Ctype.is_equal env false [ty] [t] then union vt v else v)
           !tvl2 null in
-      Btype.backtrack snap;
+      Ctype.backtrack snap;
       let (c1,n1) = get_upper v1 and (c2,n2,i2) = get_lower v2 in
       if c1 && not c2 || n1 && not n2 then begin
         match List.find_opt (eq_type ty) fvl with

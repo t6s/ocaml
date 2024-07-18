@@ -2327,10 +2327,10 @@ type unification_state =
  { snapshot: snapshot;
    env: Env.t; }
 let save_state penv =
-  { snapshot = Btype.snapshot ();
+  { snapshot = Ctype.snapshot ();
     env = !!penv; }
 let set_state s penv =
-  Btype.backtrack s.snapshot;
+  Ctype.backtrack s.snapshot;
   Pattern_env.set_env penv s.env
 
 (** Find the first alternative in the tree of or-patterns for which
@@ -2550,14 +2550,14 @@ let add_delayed_check f =
 
 let force_delayed_checks () =
   (* checks may change type levels *)
-  let snap = Btype.snapshot () in
+  let snap = Ctype.snapshot () in
   let w_old = Warnings.backup () in
   List.iter
     (fun (f, w) -> Warnings.restore w; f ())
     (List.rev !delayed_checks);
   Warnings.restore w_old;
   reset_delayed_checks ();
-  Btype.backtrack snap
+  Ctype.backtrack snap
 
 let rec final_subexpression exp =
   match exp.exp_desc with
@@ -2851,11 +2851,11 @@ let rec list_labels_aux env visited ls ty_fun =
       List.rev ls, is_Tvar ty
 
 let list_labels env ty =
-  let snap = Btype.snapshot () in
+  let snap = Ctype.snapshot () in
   let result =
     wrap_trace_gadt_instances env (list_labels_aux env TypeSet.empty []) ty
   in
-  Btype.backtrack snap;
+  Ctype.backtrack snap;
   result
 
 (* Check that all univars are safe in a type. Both exp.exp_type and
@@ -4439,7 +4439,7 @@ and type_coerce
             try
               force (); Ctype.unify env arg_type ty; true
             with Unify _ ->
-              backtrack snap; false
+              Ctype.backtrack snap; false
           then ()
           else begin try
             let force' = subtype env arg_type ty' in
@@ -5181,8 +5181,8 @@ and type_argument ?explanation ?recarg env sarg ty_expected' ty_expected =
     in
     (* Need to be careful not to expand local constraints here *)
     if Env.has_local_constraints env then
-      let snap = Btype.snapshot () in
-      try_finally ~always:(fun () -> Btype.backtrack snap) work
+      let snap = Ctype.snapshot () in
+      try_finally ~always:(fun () -> Ctype.backtrack snap) work
     else work ()
   in
   match may_coerce with

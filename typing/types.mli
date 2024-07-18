@@ -718,9 +718,9 @@ val signature_item_id : signature_item -> Ident.t
 
 type snapshot
         (* A snapshot for backtracking *)
-val snapshot: unit -> snapshot
+val snapshot: level:int -> snapshot
         (* Make a snapshot for later backtracking. Costs nothing *)
-val backtrack: cleanup_abbrev:(unit -> unit) -> snapshot -> unit
+val backtrack: cleanup_abbrev:(unit -> unit) -> level:int -> snapshot -> unit
         (* Backtrack to a given snapshot. Only possible if you have
            not already backtracked to a previous snapshot.
            Calls [cleanup_abbrev] internally *)

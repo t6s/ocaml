@@ -311,8 +311,8 @@ end = struct
       (fun name (ty, loc) ->
         if flavor = Unification || is_in_scope name then
           let v = new_global_var () in
-          let snap = Btype.snapshot () in
-          if try unify env v ty; true with _ -> Btype.backtrack snap; false
+          let snap = Ctype.snapshot () in
+          if try unify env v ty; true with _ -> Ctype.backtrack snap; false
           then try
             r := (loc, v, lookup_global_type_variable name) :: !r
           with Not_found ->
